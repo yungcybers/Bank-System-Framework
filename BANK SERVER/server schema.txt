@@ -1,0 +1,731 @@
+=========================================================
+PYTHON CLI BANKING SYSTEM
+SERVER SIDE ARCHITECTURE (DETAILED STRUCTURE)
+=========================================================
+
+
+---------------------------------------------------------
+1. SERVER PURPOSE
+---------------------------------------------------------
+
+The server is the core authority of the banking system.
+
+It is responsible for:
+
+- Managing all user accounts
+- Authenticating users
+- Processing financial transactions
+- Storing data permanently
+- Validating all client requests
+- Protecting the system from invalid operations
+
+The server must never trust the client.
+
+Every request must be verified.
+
+
+---------------------------------------------------------
+2. SERVER MAIN ARCHITECTURE
+---------------------------------------------------------
+
+server/
+
+    main.py
+    config.py
+
+    network/
+        socket_server.py
+        client_handler.py
+
+    protocol/
+        request_parser.py
+        response_builder.py
+        router.py
+
+    handlers/
+        auth_handler.py
+        account_handler.py
+        transaction_handler.py
+
+    database/
+        database_manager.py
+        user_repository.py
+        account_repository.py
+        transaction_repository.py
+
+    security/
+        password_hasher.py
+        session_manager.py
+        token_generator.py
+
+    models/
+        user_model.py
+        account_model.py
+        transaction_model.py
+
+    services/
+        auth_service.py
+        banking_service.py
+        transaction_service.py
+
+    utils/
+        logger.py
+        validators.py
+        json_utils.py
+
+    storage/
+        bank.db
+
+
+Each directory has a specific role in the architecture.
+
+
+---------------------------------------------------------
+3. MAIN SERVER ENTRY POINT
+---------------------------------------------------------
+
+File: main.py
+
+Responsibilities:
+
+- Start the server
+- Load configuration
+- Initialize database
+- Start socket listener
+
+Flow:
+
+1) Load configuration
+2) Initialize database
+3) Start socket server
+4) Accept connections
+5) Dispatch clients to handlers
+
+
+Example conceptual flow:
+
+server starts
+↓
+database initialized
+↓
+socket created
+↓
+server listening
+↓
+client connects
+↓
+client handled by client_handler
+
+
+---------------------------------------------------------
+4. CONFIGURATION SYSTEM
+---------------------------------------------------------
+
+File: config.py
+
+Stores system constants.
+
+Example configuration values:
+
+SERVER_HOST
+SERVER_PORT
+MAX_CONNECTIONS
+DATABASE_PATH
+TOKEN_EXPIRY_TIME
+
+
+Example:
+
+SERVER_HOST = "0.0.0.0"
+SERVER_PORT = 9000
+DATABASE_PATH = "storage/bank.db"
+TOKEN_EXPIRY = 3600
+
+
+This keeps settings centralized.
+
+
+---------------------------------------------------------
+5. NETWORK LAYER
+---------------------------------------------------------
+
+This layer handles socket communication.
+
+Folder:
+
+network/
+
+Files:
+
+socket_server.py
+client_handler.py
+
+
+---------------------------------------------------------
+5.1 SOCKET SERVER
+---------------------------------------------------------
+
+File: socket_server.py
+
+Responsibilities:
+
+- Create TCP socket
+- Bind to host and port
+- Listen for incoming connections
+- Accept clients
+- Start threads for clients
+
+
+Flow:
+
+create socket
+↓
+bind address
+↓
+listen
+↓
+accept client
+↓
+create thread
+↓
+send client socket to handler
+
+
+
+---------------------------------------------------------
+5.2 CLIENT HANDLER
+---------------------------------------------------------
+
+File: client_handler.py
+
+Responsibilities:
+
+- Receive client data
+- Parse JSON request
+- Send request to protocol router
+- Send response back to client
+
+Flow:
+
+receive raw socket data
+↓
+decode JSON
+↓
+validate structure
+↓
+send request to router
+↓
+receive response
+↓
+send response to client
+
+
+
+---------------------------------------------------------
+6. PROTOCOL LAYER
+---------------------------------------------------------
+
+This layer manages the communication protocol.
+
+Folder:
+
+protocol/
+
+
+Files:
+
+request_parser.py
+response_builder.py
+router.py
+
+
+---------------------------------------------------------
+6.1 REQUEST PARSER
+---------------------------------------------------------
+
+File: request_parser.py
+
+Responsibilities:
+
+- Convert raw JSON into Python objects
+- Validate message format
+- Ensure required fields exist
+
+Expected request format:
+
+type
+action
+token
+data
+
+Example parsed request object:
+
+{
+    "type": "request",
+    "action": "login",
+    "token": null,
+    "data": {...}
+}
+
+
+
+---------------------------------------------------------
+6.2 RESPONSE BUILDER
+---------------------------------------------------------
+
+File: response_builder.py
+
+Creates consistent responses.
+
+Example response format:
+
+{
+    "type": "response",
+    "status": "success",
+    "message": "Balance retrieved",
+    "data": {...}
+}
+
+
+
+---------------------------------------------------------
+6.3 REQUEST ROUTER
+---------------------------------------------------------
+
+File: router.py
+
+Responsibilities:
+
+- Determine which handler should process request
+- Route based on action field
+
+Example:
+
+login → auth_handler
+register → auth_handler
+check_balance → account_handler
+transfer → transaction_handler
+
+
+
+---------------------------------------------------------
+7. HANDLERS LAYER
+---------------------------------------------------------
+
+Handlers process specific client actions.
+
+Folder:
+
+handlers/
+
+
+Files:
+
+auth_handler.py
+account_handler.py
+transaction_handler.py
+
+
+---------------------------------------------------------
+7.1 AUTH HANDLER
+---------------------------------------------------------
+
+Handles:
+
+register
+login
+logout
+
+Operations:
+
+- create user
+- validate password
+- create session token
+
+
+
+---------------------------------------------------------
+7.2 ACCOUNT HANDLER
+---------------------------------------------------------
+
+Handles:
+
+check_balance
+account_info
+
+
+Operations:
+
+- retrieve user account
+- return balance
+
+
+
+---------------------------------------------------------
+7.3 TRANSACTION HANDLER
+---------------------------------------------------------
+
+Handles:
+
+transfer
+transaction_history
+
+Operations:
+
+- validate transaction
+- perform balance update
+- record transaction
+
+
+
+---------------------------------------------------------
+8. SERVICE LAYER
+---------------------------------------------------------
+
+Services contain business logic.
+
+Folder:
+
+services/
+
+
+Files:
+
+auth_service.py
+banking_service.py
+transaction_service.py
+
+
+Purpose:
+
+Handlers call services.
+
+Services perform the real logic.
+
+
+Example:
+
+auth_handler.login()
+    ↓
+auth_service.authenticate()
+
+
+
+---------------------------------------------------------
+9. DATABASE LAYER
+---------------------------------------------------------
+
+Folder:
+
+database/
+
+
+Files:
+
+database_manager.py
+user_repository.py
+account_repository.py
+transaction_repository.py
+
+
+---------------------------------------------------------
+9.1 DATABASE MANAGER
+---------------------------------------------------------
+
+Manages SQLite connection.
+
+Responsibilities:
+
+- open database
+- execute queries
+- commit transactions
+
+
+---------------------------------------------------------
+9.2 USER REPOSITORY
+---------------------------------------------------------
+
+Handles user data queries.
+
+Functions:
+
+create_user()
+get_user_by_username()
+get_user_by_id()
+
+
+
+---------------------------------------------------------
+9.3 ACCOUNT REPOSITORY
+---------------------------------------------------------
+
+Handles account data.
+
+Functions:
+
+create_account()
+get_balance()
+update_balance()
+
+
+
+---------------------------------------------------------
+9.4 TRANSACTION REPOSITORY
+---------------------------------------------------------
+
+Handles transaction records.
+
+Functions:
+
+create_transaction()
+get_transaction_history()
+
+
+
+---------------------------------------------------------
+10. SECURITY LAYER
+---------------------------------------------------------
+
+Folder:
+
+security/
+
+
+Files:
+
+password_hasher.py
+session_manager.py
+token_generator.py
+
+
+---------------------------------------------------------
+10.1 PASSWORD HASHER
+---------------------------------------------------------
+
+Functions:
+
+hash_password()
+verify_password()
+
+Uses:
+
+SHA256 + salt
+
+
+---------------------------------------------------------
+10.2 TOKEN GENERATOR
+---------------------------------------------------------
+
+Creates secure session tokens.
+
+Example:
+
+token = secrets.token_hex(16)
+
+
+
+---------------------------------------------------------
+10.3 SESSION MANAGER
+---------------------------------------------------------
+
+Stores active sessions.
+
+Example structure:
+
+active_sessions =
+
+{
+   token : user_id
+}
+
+
+Responsibilities:
+
+create_session()
+validate_session()
+destroy_session()
+
+
+
+---------------------------------------------------------
+11. MODELS
+---------------------------------------------------------
+
+Folder:
+
+models/
+
+
+Files:
+
+user_model.py
+account_model.py
+transaction_model.py
+
+
+Models represent data objects.
+
+Example:
+
+User
+Account
+Transaction
+
+
+
+---------------------------------------------------------
+12. UTILITIES
+---------------------------------------------------------
+
+Folder:
+
+utils/
+
+
+Files:
+
+logger.py
+validators.py
+json_utils.py
+
+
+---------------------------------------------------------
+12.1 LOGGER
+---------------------------------------------------------
+
+Logs system activity.
+
+Examples:
+
+User login
+Transfer executed
+Errors
+
+
+---------------------------------------------------------
+12.2 VALIDATORS
+---------------------------------------------------------
+
+Validates data.
+
+Examples:
+
+valid username
+valid transfer amount
+valid account
+
+
+---------------------------------------------------------
+12.3 JSON UTILS
+---------------------------------------------------------
+
+Handles JSON encoding and decoding.
+
+
+
+---------------------------------------------------------
+13. DATABASE SCHEMA
+---------------------------------------------------------
+
+TABLE users
+
+id
+username
+password_hash
+salt
+created_at
+
+
+TABLE accounts
+
+account_id
+user_id
+balance
+
+
+TABLE transactions
+
+transaction_id
+sender_account
+receiver_account
+amount
+timestamp
+
+
+
+---------------------------------------------------------
+14. TRANSACTION SAFETY
+---------------------------------------------------------
+
+Transfers must use database transactions.
+
+Example process:
+
+BEGIN TRANSACTION
+
+deduct sender balance
+add receiver balance
+record transaction
+
+COMMIT
+
+
+This prevents partial transfers.
+
+
+---------------------------------------------------------
+15. CONCURRENCY MODEL
+---------------------------------------------------------
+
+Server supports multiple clients using threads.
+
+Each client connection runs in a separate thread.
+
+Flow:
+
+client connects
+↓
+thread created
+↓
+client handled independently
+
+
+
+---------------------------------------------------------
+16. ERROR HANDLING
+---------------------------------------------------------
+
+Errors returned as structured responses.
+
+Example:
+
+{
+ "status": "error",
+ "message": "Invalid token"
+}
+
+
+
+---------------------------------------------------------
+17. COMPLETE SERVER FLOW
+---------------------------------------------------------
+
+1) Server starts
+2) Database initializes
+3) Socket opens
+4) Server listens for clients
+5) Client connects
+6) Client sends JSON request
+7) Request parsed
+8) Router selects handler
+9) Handler calls service
+10) Service interacts with database
+11) Result returned
+12) Response built
+13) Response sent to client
+
+
+
+=========================================================
+END OF SERVER STRUCTURE
+=========================================================

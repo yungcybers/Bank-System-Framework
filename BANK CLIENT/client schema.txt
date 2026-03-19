@@ -1,0 +1,537 @@
+=====================================================================
+PYTHON SOCKET BANKING SYSTEM
+CLIENT SIDE ARCHITECTURE DOCUMENTATION
+=====================================================================
+
+
+=====================================================================
+ROOT DIRECTORY
+=====================================================================
+
+client/
+
+    main.py
+    config.py
+
+    network/
+        socket_client.py
+        connection_manager.py
+
+    protocol/
+        request_builder.py
+        response_parser.py
+
+    interface/
+        cli.py
+        menu_manager.py
+        input_handler.py
+
+    controllers/
+        auth_controller.py
+        account_controller.py
+        transaction_controller.py
+
+    storage/
+        local_storage.py
+        client_data.json
+
+    utils/
+        validators.py
+        json_utils.py
+        formatter.py
+
+    models/
+        user_model.py
+        account_model.py
+        transaction_model.py
+
+
+
+=====================================================================
+CLIENT APPLICATION OVERVIEW
+=====================================================================
+
+The client is responsible for the user interaction layer.
+
+Responsibilities include:
+
+- Displaying menus
+- Taking user input
+- Sending requests to the server
+- Receiving responses from the server
+- Displaying results to the user
+- Storing minimal local client data
+
+The client must NOT perform banking logic.
+
+All sensitive operations occur on the server.
+
+
+
+=====================================================================
+FILE: main.py
+ROLE: CLIENT ENTRY POINT
+=====================================================================
+
+Purpose:
+main.py is the starting point of the client application.
+
+When the user runs the client program, this file is executed.
+
+Responsibilities:
+
+- Initialize the client application
+- Load configuration
+- Start CLI interface
+- Initialize network connection manager
+- Launch main application loop
+
+Startup Flow:
+
+client program starts
+↓
+configuration loaded
+↓
+CLI interface initialized
+↓
+main menu displayed
+↓
+user selects action
+↓
+controller processes request
+
+
+
+=====================================================================
+FILE: config.py
+ROLE: CLIENT CONFIGURATION
+=====================================================================
+
+Purpose:
+Stores configuration values for the client application.
+
+Typical values include:
+
+SERVER_HOST
+SERVER_PORT
+CONNECTION_TIMEOUT
+BUFFER_SIZE
+LOCAL_STORAGE_PATH
+
+Example:
+
+SERVER_HOST = "127.0.0.1"
+SERVER_PORT = 9000
+
+BUFFER_SIZE = 4096
+
+LOCAL_STORAGE_PATH = "storage/client_data.json"
+
+
+
+=====================================================================
+DIRECTORY: network/
+ROLE: SERVER COMMUNICATION
+=====================================================================
+
+Handles all network communication between the client and server.
+
+Files:
+
+socket_client.py
+connection_manager.py
+
+
+
+=====================================================================
+FILE: socket_client.py
+ROLE: SOCKET COMMUNICATION
+=====================================================================
+
+Purpose:
+Handles the raw TCP socket connection with the server.
+
+Responsibilities:
+
+- Create client socket
+- Connect to server
+- Send requests
+- Receive responses
+- Close connections
+
+Communication Flow:
+
+client builds request
+↓
+request converted to JSON
+↓
+socket sends data
+↓
+server processes request
+↓
+response received
+↓
+JSON parsed into Python object
+
+
+
+=====================================================================
+FILE: connection_manager.py
+ROLE: CONNECTION CONTROL
+=====================================================================
+
+Purpose:
+Manages server connections and simplifies communication.
+
+Responsibilities:
+
+- Open connection to server
+- Send requests through socket
+- Receive responses
+- Handle connection failures
+- Retry connection if necessary
+
+
+
+=====================================================================
+DIRECTORY: protocol/
+ROLE: MESSAGE FORMATTING
+=====================================================================
+
+Handles how messages are structured before being sent
+and how responses are interpreted.
+
+Files:
+
+request_builder.py
+response_parser.py
+
+
+
+=====================================================================
+FILE: request_builder.py
+ROLE: REQUEST CREATION
+=====================================================================
+
+Purpose:
+Constructs JSON request messages to send to the server.
+
+Standard request structure:
+
+{
+ "type": "request",
+ "action": "action_name",
+ "token": "session_token",
+ "data": {}
+}
+
+Responsibilities:
+
+- Format requests
+- Insert session token
+- Validate request structure
+
+
+
+=====================================================================
+FILE: response_parser.py
+ROLE: RESPONSE INTERPRETATION
+=====================================================================
+
+Purpose:
+Processes responses received from the server.
+
+Responsibilities:
+
+- Convert JSON responses into Python objects
+- Extract status, message, and data
+- Detect errors
+
+
+
+=====================================================================
+DIRECTORY: interface/
+ROLE: USER INTERFACE
+=====================================================================
+
+Handles the command-line user interface.
+
+Files:
+
+cli.py
+menu_manager.py
+input_handler.py
+
+
+
+=====================================================================
+FILE: cli.py
+ROLE: MAIN COMMAND LINE INTERFACE
+=====================================================================
+
+Purpose:
+Controls the overall CLI experience.
+
+Responsibilities:
+
+- Display application title
+- Display menus
+- Coordinate menu navigation
+- Display server responses
+
+
+
+=====================================================================
+FILE: menu_manager.py
+ROLE: MENU CONTROL
+=====================================================================
+
+Purpose:
+Manages all application menus.
+
+Menus include:
+
+Main Menu
+Login Menu
+Account Menu
+Transaction Menu
+
+Example main menu:
+
+1. Register
+2. Login
+3. Exit
+
+
+
+=====================================================================
+FILE: input_handler.py
+ROLE: USER INPUT PROCESSING
+=====================================================================
+
+Purpose:
+Handles user input from the CLI.
+
+Responsibilities:
+
+- Collect user input
+- Validate input
+- Convert input into controller requests
+
+
+
+=====================================================================
+DIRECTORY: controllers/
+ROLE: APPLICATION LOGIC COORDINATION
+=====================================================================
+
+Controllers act as the bridge between the interface
+and the server communication system.
+
+Files:
+
+auth_controller.py
+account_controller.py
+transaction_controller.py
+
+
+
+=====================================================================
+FILE: auth_controller.py
+ROLE: AUTHENTICATION CONTROLLER
+=====================================================================
+
+Handles authentication actions.
+
+Responsibilities:
+
+- Register user
+- Login user
+- Logout user
+
+Process:
+
+user enters credentials
+↓
+request built
+↓
+request sent to server
+↓
+response received
+↓
+session token stored locally
+
+
+
+=====================================================================
+FILE: account_controller.py
+ROLE: ACCOUNT OPERATIONS
+=====================================================================
+
+Handles account-related operations.
+
+Responsibilities:
+
+- Request account balance
+- Request account information
+- Display account data
+
+
+
+=====================================================================
+FILE: transaction_controller.py
+ROLE: TRANSACTION OPERATIONS
+=====================================================================
+
+Handles financial operations.
+
+Responsibilities:
+
+- Initiate transfers
+- Request transaction history
+- Display transaction results
+
+
+
+=====================================================================
+DIRECTORY: storage/
+ROLE: LOCAL CLIENT DATA STORAGE
+=====================================================================
+
+Stores minimal data locally for the client.
+
+Files:
+
+local_storage.py
+client_data.json
+
+
+
+=====================================================================
+FILE: local_storage.py
+ROLE: LOCAL DATA MANAGEMENT
+=====================================================================
+
+Purpose:
+Manages client-side stored data.
+
+Responsibilities:
+
+- Save session token
+- Save username
+- Load stored session data
+
+
+
+=====================================================================
+FILE: client_data.json
+ROLE: LOCAL CLIENT DATA FILE
+=====================================================================
+
+Example structure:
+
+{
+ "username": "jesse",
+ "user_id": 5,
+ "token": "a39f82ab1"
+}
+
+Used to maintain session information between runs.
+
+
+
+=====================================================================
+DIRECTORY: utils/
+ROLE: HELPER FUNCTIONS
+=====================================================================
+
+Files:
+
+validators.py
+json_utils.py
+formatter.py
+
+
+
+=====================================================================
+FILE: validators.py
+ROLE: INPUT VALIDATION
+=====================================================================
+
+Responsibilities:
+
+- Validate usernames
+- Validate numeric input
+- Validate transfer amounts
+
+
+
+=====================================================================
+FILE: json_utils.py
+ROLE: JSON CONVERSION
+=====================================================================
+
+Handles:
+
+- JSON encoding
+- JSON decoding
+
+
+
+=====================================================================
+FILE: formatter.py
+ROLE: OUTPUT FORMATTING
+=====================================================================
+
+Handles formatting of CLI output.
+
+Example:
+
+- tables
+- transaction lists
+- balance display
+
+
+
+=====================================================================
+DIRECTORY: models/
+ROLE: DATA STRUCTURES
+=====================================================================
+
+Models represent structured data returned from the server.
+
+Files:
+
+user_model.py
+account_model.py
+transaction_model.py
+
+
+
+=====================================================================
+CLIENT REQUEST FLOW
+=====================================================================
+
+User selects menu option
+↓
+Controller receives request
+↓
+Request builder constructs JSON request
+↓
+Connection manager sends request
+↓
+Server processes request
+↓
+Response returned
+↓
+Response parser extracts data
+↓
+Controller processes result
+↓
+CLI displays result
+
+
+
+=====================================================================
+END OF CLIENT DOCUMENT
+=====================================================================
