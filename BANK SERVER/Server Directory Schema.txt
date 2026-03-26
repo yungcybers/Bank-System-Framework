@@ -1,0 +1,686 @@
+=====================================================================
+PYTHON SOCKET BANKING SYSTEM
+COMPLETE SERVER ARCHITECTURE DOCUMENTATION
+=====================================================================
+
+
+=====================================================================
+ROOT DIRECTORY
+=====================================================================
+
+server/
+
+    main.py
+    config.py
+
+    network/
+        socket_server.py
+        client_handler.py
+
+    protocol/
+        request_parser.py
+        response_builder.py
+        router.py
+
+    handlers/
+        auth_handler.py
+        account_handler.py
+        transaction_handler.py
+
+    database/
+        database_manager.py
+        user_repository.py
+        account_repository.py
+        transaction_repository.py
+
+    security/
+        password_hasher.py
+        session_manager.py
+        token_generator.py
+
+    models/
+        user_model.py
+        account_model.py
+        transaction_model.py
+
+    services/
+        auth_service.py
+        banking_service.py
+        transaction_service.py
+
+    utils/
+        logger.py
+        validators.py
+        json_utils.py
+
+    storage/
+        bank.db
+
+
+
+=====================================================================
+FILE: main.py
+ROLE: SERVER ENTRY POINT
+=====================================================================
+
+Purpose:
+The main.py file is the entry point of the server application.
+It starts the server and initializes the core components required
+for the system to run.
+
+Responsibilities:
+
+- Start the server program
+- Load configuration
+- Initialize the database
+- Initialize logging
+- Start the socket listener
+- Keep the server running
+
+Server Startup Process:
+
+1. Load configuration settings
+2. Initialize the database
+3. Start the socket server
+4. Begin listening for client connections
+5. Accept client connections indefinitely
+
+Interaction With Other Modules:
+
+main.py interacts with:
+
+config.py
+socket_server.py
+database_manager.py
+logger.py
+
+
+
+=====================================================================
+FILE: config.py
+ROLE: SERVER CONFIGURATION
+=====================================================================
+
+Purpose:
+Stores global configuration variables used across the system.
+
+This prevents hardcoding values throughout the codebase.
+
+Typical configuration values include:
+
+SERVER_HOST
+SERVER_PORT
+DATABASE_PATH
+BUFFER_SIZE
+TOKEN_EXPIRY
+MAX_CONNECTIONS
+
+Example values:
+
+SERVER_HOST = "0.0.0.0"
+SERVER_PORT = 9000
+DATABASE_PATH = "storage/bank.db"
+BUFFER_SIZE = 4096
+TOKEN_EXPIRY = 3600
+MAX_CONNECTIONS = 100
+
+Benefits:
+
+- Centralized configuration
+- Easy updates
+- Clean code
+- Environment flexibility
+
+
+
+=====================================================================
+DIRECTORY: network/
+ROLE: NETWORK COMMUNICATION LAYER
+=====================================================================
+
+This directory manages all socket communication between the
+server and connected clients.
+
+It is responsible for:
+
+- TCP socket creation
+- Accepting connections
+- Handling client communication
+- Managing concurrent client threads
+
+Files:
+
+socket_server.py
+client_handler.py
+
+
+
+=====================================================================
+FILE: socket_server.py
+ROLE: TCP SERVER CONTROLLER
+=====================================================================
+
+Purpose:
+Creates and manages the TCP server socket.
+
+Responsibilities:
+
+- Create TCP socket
+- Bind socket to host and port
+- Start listening for incoming connections
+- Accept client connections
+- Spawn a thread for each client
+
+Server Lifecycle:
+
+create socket
+bind socket to address
+start listening
+wait for clients
+accept connection
+spawn client handler thread
+
+Example Flow:
+
+server starts
+↓
+socket created
+↓
+socket bound to host and port
+↓
+server listens for connections
+↓
+client connects
+↓
+client thread created
+↓
+client handled by client_handler
+
+
+
+=====================================================================
+FILE: client_handler.py
+ROLE: CLIENT CONNECTION PROCESSOR
+=====================================================================
+
+Purpose:
+Handles communication with a single connected client.
+
+Responsibilities:
+
+- Receive socket data
+- Decode incoming JSON messages
+- Send requests to the router
+- Send responses back to the client
+- Close connection when finished
+
+Processing Flow:
+
+client sends JSON request
+↓
+server receives raw bytes
+↓
+bytes converted to string
+↓
+string parsed into JSON
+↓
+request validated
+↓
+request routed to appropriate handler
+↓
+response returned
+↓
+response converted to JSON
+↓
+response sent to client
+
+
+
+=====================================================================
+DIRECTORY: protocol/
+ROLE: MESSAGE PROTOCOL MANAGEMENT
+=====================================================================
+
+Handles the communication protocol used between client and server.
+
+Ensures that all messages follow a consistent format.
+
+Files:
+
+request_parser.py
+response_builder.py
+router.py
+
+
+
+=====================================================================
+FILE: request_parser.py
+ROLE: REQUEST VALIDATION AND PARSING
+=====================================================================
+
+Purpose:
+Parses incoming JSON requests and validates their structure.
+
+Responsibilities:
+
+- Convert JSON string to Python dictionary
+- Validate required fields
+- Ensure proper request format
+
+Expected request structure:
+
+{
+  "type": "request",
+  "action": "action_name",
+  "token": "session_token",
+  "data": {}
+}
+
+Validation ensures:
+
+type exists
+action exists
+data exists
+
+
+
+=====================================================================
+FILE: response_builder.py
+ROLE: RESPONSE CREATION
+=====================================================================
+
+Purpose:
+Creates standardized responses to send back to clients.
+
+Standard response format:
+
+{
+ "type": "response",
+ "status": "success or error",
+ "message": "description",
+ "data": {}
+}
+
+Benefits:
+
+- Consistent responses
+- Easier debugging
+- Client-side simplicity
+
+
+
+=====================================================================
+FILE: router.py
+ROLE: REQUEST ROUTING
+=====================================================================
+
+Purpose:
+Routes incoming requests to the appropriate handler based
+on the action field.
+
+Example mapping:
+
+login → auth_handler
+register → auth_handler
+check_balance → account_handler
+transfer → transaction_handler
+
+Routing Process:
+
+request received
+↓
+extract action
+↓
+determine handler
+↓
+call handler function
+↓
+return response
+
+
+
+=====================================================================
+DIRECTORY: handlers/
+ROLE: REQUEST HANDLERS
+=====================================================================
+
+Handlers receive routed requests and manage the request
+processing pipeline.
+
+Files:
+
+auth_handler.py
+account_handler.py
+transaction_handler.py
+
+
+
+=====================================================================
+FILE: auth_handler.py
+ROLE: AUTHENTICATION HANDLER
+=====================================================================
+
+Handles authentication related requests.
+
+Supported actions:
+
+register
+login
+logout
+
+Responsibilities:
+
+- Receive login requests
+- Receive registration requests
+- Validate credentials
+- Call authentication services
+
+
+
+=====================================================================
+FILE: account_handler.py
+ROLE: ACCOUNT OPERATIONS HANDLER
+=====================================================================
+
+Handles requests related to account data.
+
+Supported actions:
+
+check_balance
+account_info
+
+Responsibilities:
+
+- Retrieve account details
+- Retrieve account balance
+- Validate account ownership
+
+
+
+=====================================================================
+FILE: transaction_handler.py
+ROLE: TRANSACTION OPERATIONS
+=====================================================================
+
+Handles financial transactions.
+
+Supported actions:
+
+transfer
+transaction_history
+
+Responsibilities:
+
+- Validate transfer request
+- Ensure sufficient balance
+- Execute transfer
+- Record transaction
+
+
+
+=====================================================================
+DIRECTORY: database/
+ROLE: DATABASE ACCESS LAYER
+=====================================================================
+
+Handles all database operations.
+
+Files:
+
+database_manager.py
+user_repository.py
+account_repository.py
+transaction_repository.py
+
+
+
+=====================================================================
+FILE: database_manager.py
+ROLE: DATABASE CONNECTION MANAGER
+=====================================================================
+
+Responsibilities:
+
+- Initialize database
+- Establish database connection
+- Execute SQL queries
+- Commit transactions
+
+
+
+=====================================================================
+FILE: user_repository.py
+ROLE: USER DATA ACCESS
+=====================================================================
+
+Handles all database queries related to users.
+
+Functions:
+
+create_user
+get_user_by_username
+get_user_by_id
+
+
+
+=====================================================================
+FILE: account_repository.py
+ROLE: ACCOUNT DATA ACCESS
+=====================================================================
+
+Handles account database operations.
+
+Functions:
+
+create_account
+get_account
+get_balance
+update_balance
+
+
+
+=====================================================================
+FILE: transaction_repository.py
+ROLE: TRANSACTION STORAGE
+=====================================================================
+
+Handles storage and retrieval of transaction records.
+
+Functions:
+
+create_transaction
+get_transactions_for_user
+
+
+
+=====================================================================
+DIRECTORY: security/
+ROLE: SECURITY COMPONENTS
+=====================================================================
+
+Files:
+
+password_hasher.py
+session_manager.py
+token_generator.py
+
+
+
+=====================================================================
+FILE: password_hasher.py
+ROLE: PASSWORD SECURITY
+=====================================================================
+
+Handles password hashing and verification.
+
+Responsibilities:
+
+- Hash passwords using bcrypt
+- Verify password during login
+
+
+
+=====================================================================
+FILE: token_generator.py
+ROLE: SESSION TOKEN GENERATION
+=====================================================================
+
+Generates secure random tokens for authentication sessions.
+
+Example token generation method:
+
+secrets.token_hex(16)
+
+
+
+=====================================================================
+FILE: session_manager.py
+ROLE: SESSION MANAGEMENT
+=====================================================================
+
+Tracks active user sessions.
+
+Responsibilities:
+
+create_session
+validate_session
+destroy_session
+
+Example session store:
+
+token → user_id
+
+
+
+=====================================================================
+DIRECTORY: models/
+ROLE: DATA MODELS
+=====================================================================
+
+Models represent structured data objects.
+
+Files:
+
+user_model.py
+account_model.py
+transaction_model.py
+
+
+
+=====================================================================
+DIRECTORY: services/
+ROLE: BUSINESS LOGIC LAYER
+=====================================================================
+
+Services contain the core application logic.
+
+Files:
+
+auth_service.py
+banking_service.py
+transaction_service.py
+
+Handlers call services to perform real operations.
+
+
+
+=====================================================================
+DIRECTORY: utils/
+ROLE: GENERAL UTILITIES
+=====================================================================
+
+Files:
+
+logger.py
+validators.py
+json_utils.py
+
+Utilities provide helper functions used throughout the system.
+
+
+
+=====================================================================
+DIRECTORY: storage/
+ROLE: DATA STORAGE
+=====================================================================
+
+Contains the SQLite database file.
+
+bank.db
+
+Tables:
+
+users
+accounts
+transactions
+
+
+
+=====================================================================
+DATABASE TABLE STRUCTURE
+=====================================================================
+
+TABLE users
+
+id
+username
+password_hash
+created_at
+
+
+TABLE accounts
+
+account_id
+user_id
+balance
+
+
+TABLE transactions
+
+transaction_id
+sender_account
+receiver_account
+amount
+timestamp
+
+
+
+=====================================================================
+SERVER REQUEST FLOW
+=====================================================================
+
+Client sends request
+↓
+socket_server accepts connection
+↓
+client_handler receives request
+↓
+request_parser validates message
+↓
+router selects handler
+↓
+handler calls service
+↓
+service interacts with database
+↓
+result returned
+↓
+response_builder creates response
+↓
+response sent to client
+
+
+
+=====================================================================
+END OF DOCUMENT
+=====================================================================
+
+
+
+
+
+
+
+
+
+We will be using python sockets to make the server and the client. They will comunicate using IPV4 protocol and data will be sent by converting python dict objects into json strings. We will also use SQLite to create and manage the database for the system. We wil encrypt using the cryptography.fernet module.

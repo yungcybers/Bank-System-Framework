@@ -6,4 +6,6 @@ def func for sending money between accounts:
     confirm balance
     facilitate transaction
 
+same acc transactions
+
 """
