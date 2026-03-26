@@ -1,0 +1,523 @@
+=====================================================
+PYTHON SOCKET BANKING SYSTEM - COMPLETE FRAMEWORK
+CLI CLIENT + SOCKET SERVER + JSON PROTOCOL
+=====================================================
+
+
+-----------------------------------------------------
+1. SYSTEM OVERVIEW
+-----------------------------------------------------
+
+The banking application consists of two major programs:
+
+1) CLIENT APPLICATION
+2) SERVER APPLICATION
+
+They communicate over TCP sockets using JSON messages.
+
+Architecture:
+
+CLIENT (CLI Interface)
+      |
+      |  TCP Socket Connection
+      |  JSON Messages
+      |
+SERVER (Python Backend)
+      |
+      |  SQL Queries
+      |
+DATABASE (SQLite)
+
+
+The client sends requests.
+The server processes the request.
+The server sends a response.
+
+The server holds all critical data:
+- user accounts
+- passwords
+- balances
+- transaction history
+
+The client only stores:
+- username
+- user_id
+- session_token
+
+
+-----------------------------------------------------
+2. CLIENT PROGRAM RESPONSIBILITIES
+-----------------------------------------------------
+
+The client program does NOT contain banking logic.
+
+It only:
+
+1) Displays menus
+2) Takes user input
+3) Sends JSON requests to server
+4) Receives server responses
+5) Displays results
+
+Example CLI Menu:
+
+--------------------------------
+
+Welcome to PyBank
+
+1. Register
+2. Login
+3. Exit
+
+--------------------------------
+
+
+After login:
+
+--------------------------------
+
+1. Check Balance
+2. Transfer Money
+3. View Transactions
+4. Logout
+
+--------------------------------
+
+
+
+-----------------------------------------------------
+3. SERVER PROGRAM RESPONSIBILITIES
+-----------------------------------------------------
+
+The server performs ALL banking logic.
+
+Responsibilities:
+
+- Authentication
+- Account management
+- Balance management
+- Transaction handling
+- Security validation
+- Database operations
+
+The server must never trust the client.
+
+Every request must be validated.
+
+
+-----------------------------------------------------
+4. SOCKET COMMUNICATION MODEL
+-----------------------------------------------------
+
+Communication occurs through TCP sockets.
+
+Flow:
+
+1) Client connects to server
+2) Client sends JSON request
+3) Server processes request
+4) Server sends JSON response
+5) Connection closes (or persists)
+
+Data format:
+
+Python dict -> JSON string -> Socket send
+Socket receive -> JSON parse -> Python dict
+
+
+
+-----------------------------------------------------
+5. STANDARD JSON PROTOCOL STRUCTURE
+-----------------------------------------------------
+
+All requests follow this structure:
+
+{
+    "type": "request",
+    "action": "ACTION_NAME",
+    "token": "SESSION_TOKEN_OR_NULL",
+    "data": { }
+}
+
+All responses follow this structure:
+
+{
+    "type": "response",
+    "status": "success | error",
+    "message": "description",
+    "data": { }
+}
+
+
+Example LOGIN request:
+
+{
+    "type": "request",
+    "action": "login",
+    "token": null,
+    "data": {
+        "username": "jesse",
+        "password": "mypassword"
+    }
+}
+
+
+Example LOGIN response:
+
+{
+    "type": "response",
+    "status": "success",
+    "message": "Login successful",
+    "data": {
+        "user_id": 10,
+        "token": "a92f812f123"
+    }
+}
+
+
+
+-----------------------------------------------------
+6. CLIENT TO SERVER ACTION LIST
+-----------------------------------------------------
+
+Supported actions:
+
+register
+login
+logout
+check_balance
+transfer
+transaction_history
+
+
+
+-----------------------------------------------------
+7. SERVER FILE STRUCTURE
+-----------------------------------------------------
+
+server/
+
+    main.py
+    socket_server.py
+    protocol_router.py
+
+    handlers/
+
+        auth_handler.py
+        account_handler.py
+        transaction_handler.py
+
+    database/
+
+        database_manager.py
+        models.py
+
+    security/
+
+        password_hashing.py
+        session_manager.py
+
+    utils/
+
+        json_utils.py
+        logger.py
+
+
+
+-----------------------------------------------------
+8. CLIENT FILE STRUCTURE
+-----------------------------------------------------
+
+client/
+
+    main.py
+    socket_client.py
+    menu.py
+    client_storage.py
+
+
+
+-----------------------------------------------------
+9. DATABASE STRUCTURE
+-----------------------------------------------------
+
+Database: SQLite
+
+
+TABLE: users
+
+id
+username
+password_hash
+salt
+created_at
+
+
+TABLE: accounts
+
+account_id
+user_id
+balance
+
+
+TABLE: transactions
+
+transaction_id
+sender_account
+receiver_account
+amount
+timestamp
+
+
+
+-----------------------------------------------------
+10. PASSWORD SECURITY
+-----------------------------------------------------
+
+Passwords must NEVER be stored directly.
+
+Instead store a hash.
+
+Process:
+
+password + random_salt -> SHA256 -> password_hash
+
+
+Database entry example:
+
+username: jesse
+salt: X4f92L
+password_hash: 9f8e3ad45b21...
+
+
+Login process:
+
+1) user sends password
+2) server retrieves salt
+3) server hashes entered password
+4) server compares hash with stored hash
+
+
+
+-----------------------------------------------------
+11. SESSION AUTHENTICATION
+-----------------------------------------------------
+
+After login, server creates a session token.
+
+Example:
+
+token = random secure string
+
+Example token:
+
+c2d93a9f8812d
+
+
+Client must include token in all future requests.
+
+Example request:
+
+{
+ "action": "check_balance",
+ "token": "c2d93a9f8812d",
+ "data": {}
+}
+
+
+Server checks if token is valid before performing action.
+
+
+
+-----------------------------------------------------
+12. SERVER REQUEST ROUTING
+-----------------------------------------------------
+
+The server routes actions to handlers.
+
+Example routing logic:
+
+if action == "login"
+    call auth_handler.login()
+
+if action == "register"
+    call auth_handler.register()
+
+if action == "transfer"
+    call transaction_handler.transfer()
+
+if action == "check_balance"
+    call account_handler.check_balance()
+
+
+
+-----------------------------------------------------
+13. MONEY TRANSFER PROCESS
+-----------------------------------------------------
+
+Transfer Request:
+
+{
+ "action": "transfer",
+ "token": "session123",
+ "data": {
+     "receiver_account": 25,
+     "amount": 100
+ }
+}
+
+
+Server Process:
+
+1) Validate session token
+2) Identify sender account
+3) Verify receiver account exists
+4) Check sender balance
+5) If balance sufficient:
+
+    BEGIN TRANSACTION
+
+    deduct money from sender
+    add money to receiver
+    record transaction
+
+    COMMIT
+
+6) Send success response
+
+
+
+-----------------------------------------------------
+14. TRANSACTION HISTORY PROCESS
+-----------------------------------------------------
+
+Client request:
+
+{
+ "action": "transaction_history",
+ "token": "session123",
+ "data": {}
+}
+
+
+Server:
+
+1) validate token
+2) find user's account
+3) fetch transaction records
+4) return list
+
+
+
+-----------------------------------------------------
+15. MULTI CLIENT SUPPORT
+-----------------------------------------------------
+
+The server must support many clients simultaneously.
+
+Solution: threads
+
+
+Flow:
+
+Client connects
+Server creates new thread
+Thread handles that client
+Thread ends when client disconnects
+
+
+
+-----------------------------------------------------
+16. ERROR HANDLING
+-----------------------------------------------------
+
+Server must always return structured errors.
+
+Example:
+
+{
+ "status": "error",
+ "message": "Invalid session token"
+}
+
+
+Example:
+
+{
+ "status": "error",
+ "message": "Insufficient balance"
+}
+
+
+
+-----------------------------------------------------
+17. CLIENT LOCAL STORAGE
+-----------------------------------------------------
+
+The client may store:
+
+username
+user_id
+session_token
+
+
+Example local file:
+
+client_data.json
+
+
+{
+ "username": "jesse",
+ "user_id": 5,
+ "token": "a93f8129"
+}
+
+
+
+-----------------------------------------------------
+18. SECURITY RULES
+-----------------------------------------------------
+
+The client cannot be trusted.
+
+Server must verify:
+
+- token validity
+- account ownership
+- balance
+- transaction limits
+
+Never trust client values.
+
+
+
+-----------------------------------------------------
+19. SERVER STARTUP PROCESS
+-----------------------------------------------------
+
+1) server starts
+2) database connection opens
+3) socket binds to port
+4) server listens
+5) server accepts connections
+6) threads handle clients
+
+
+
+-----------------------------------------------------
+20. CLIENT STARTUP PROCESS
+-----------------------------------------------------
+
+1) client starts
+2) CLI menu shown
+3) user selects action
+4) client connects to server
+5) JSON request sent
+6) response received
+7) CLI displays result
+
+
+
+=====================================================
+END OF FRAMEWORK
+=====================================================

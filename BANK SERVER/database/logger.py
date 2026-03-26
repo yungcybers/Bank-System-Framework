@@ -1,6 +1,4 @@
 """
-
-
 define func that takes logs of all general activities:
     param : activity_details(dict)
     validate that the activity_details dict has the right format. (activity, timestamp)
