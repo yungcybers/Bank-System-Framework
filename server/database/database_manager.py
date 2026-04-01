@@ -2,8 +2,6 @@ from server.config import database_config as db_config
 import sqlite3
 
 connection = sqlite3.connect(db_config.DATABASE)
-print("Connecting to database......\n Connection established!!! \n Creating cursor......"
-      "\nLoading tables.....\nChecking for missing tables\nDatabase initialised successfully")
 cursor = connection.cursor()
 
 cursor.execute(f"""SELECT name FROM sqlite_master WHERE type='table';""")
