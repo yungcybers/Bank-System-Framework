@@ -1,3 +1,12 @@
+import sqlite3
+
+
+class Transaction:
+    def __init__(self, connection: sqlite3.Connection, cursor: sqlite3.Cursor):
+        self.connection = connection
+        self.cursor = cursor
+
+
 """
 define func that initiates transactions between different users( spending account only):
     param : type, recipient_id, amount, pin

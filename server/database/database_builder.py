@@ -1,4 +1,4 @@
-from server.config import database_config as db_config
+from server.config.database import database_config as db_config
 import sqlite3
 
 connection = sqlite3.connect(db_config.DATABASE)
@@ -13,6 +13,7 @@ def main():
                 first_name TEXT NOT NULL,
                 sur_name TEXT NOT NULL,
                 password TEXT NOT NULL,
+                username TEXT UNIQUE NOT NULL,
                 time_of_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )"""
     )
@@ -20,10 +21,12 @@ def main():
     cursor.execute(
         """CREATE TABLE system_logs(
         log_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER DEFAULT 0000000000,
+        user_id INTEGER DEFAULT 0,
         action TEXT NOT NULL,
         description TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 
 )"""
     )
@@ -36,9 +39,10 @@ CREATE TABLE accounts(
             user_id INTEGER NOT NULL,
             account_type TEXT CHECK(account_type IN ('SAVINGS', 'SPENDING')),
             balance REAL NOT NULL DEFAULT 0.00,
+            pin TEXT NOT NULL,
             date_of_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            status TEXT NOT NULL  CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),
-            last_used DATETIME DEFAULT NULL,
+            status TEXT NOT NULL DEFAULT ACTIVE CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
             
             FOREIGN KEY (user_id) REFERENCES users(id)
             ON DELETE CASCADE
