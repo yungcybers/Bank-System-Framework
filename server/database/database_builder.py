@@ -1,5 +1,6 @@
-from server.config.database import database_config as db_config
 import sqlite3
+
+from server.config.database import database_config as db_config
 
 connection = sqlite3.connect(db_config.DATABASE)
 cursor = connection.cursor()
@@ -31,9 +32,8 @@ def main():
 )"""
     )
 
-    cursor.execute(
-        """
-CREATE TABLE accounts(
+    cursor.execute(  # gpt fix start
+        """CREATE TABLE accounts(
             account_id INTEGER PRIMARY KEY AUTOINCREMENT,
             account_number TEXT UNIQUE NOT NULL,
             user_id INTEGER NOT NULL,
@@ -41,13 +41,14 @@ CREATE TABLE accounts(
             balance REAL NOT NULL DEFAULT 0.00,
             pin TEXT NOT NULL,
             date_of_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            status TEXT NOT NULL DEFAULT ACTIVE CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),
+            status TEXT NOT NULL DEFAULT 'ACTIVE'
+            CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),
             last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
-            
+
             FOREIGN KEY (user_id) REFERENCES users(id)
             ON DELETE CASCADE
             )"""
-    )
+    )  # gpt fix end
 
     cursor.execute(
         """CREATE TABLE savings_acc_details(
@@ -92,7 +93,49 @@ CREATE TABLE accounts(
     )
         )"""
     )
+    connection.commit()  # gpt fix start
+    connection.close()  # gpt fix end
 
 
 if __name__ == "__main__":
     main()
+
+'''
+Removed lines:
+Line 44:             status TEXT NOT NULL DEFAULT ACTIVE CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),
+Lines 34-50:     cursor.execute(
+        """
+CREATE TABLE accounts(
+            account_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_number TEXT UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL,
+            account_type TEXT CHECK(account_type IN ('SAVINGS', 'SPENDING')),
+            balance REAL NOT NULL DEFAULT 0.00,
+            pin TEXT NOT NULL,
+            date_of_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),  #gpt fix
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            
+            FOREIGN KEY (user_id) REFERENCES users(id)
+            ON DELETE CASCADE
+            )"""
+    )
+Line 51:     connection.commit()  #gpt fix
+Line 52:     connection.close()  #gpt fix
+Lines 1-2: from server.config.database import database_config as db_config
+import sqlite3
+Lines 34-47:     cursor.execute("""CREATE TABLE accounts(
+            account_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            account_number TEXT UNIQUE NOT NULL,
+            user_id INTEGER NOT NULL,
+            account_type TEXT CHECK(account_type IN ('SAVINGS', 'SPENDING')),
+            balance REAL NOT NULL DEFAULT 0.00,
+            pin TEXT NOT NULL,
+            date_of_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'DORMANT', 'FROZEN', 'CLOSED')),
+            last_used DATETIME DEFAULT CURRENT_TIMESTAMP,
+            
+            FOREIGN KEY (user_id) REFERENCES users(id)
+            ON DELETE CASCADE
+            )""")  #gpt fix
+'''

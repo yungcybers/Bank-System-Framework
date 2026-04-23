@@ -35,6 +35,7 @@ def decrypt_dict(data: dict):
     return data
 """
 
+
 def hash_passkey(passkey: str):
     return bcrypt.hashpw(passkey.encode(), bcrypt.gensalt()).decode()
 

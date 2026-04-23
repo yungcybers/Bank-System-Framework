@@ -28,11 +28,17 @@ class SystemLogsSchema(TypedDict):
 
 
 class TransactionLogsSchema(TypedDict):
-    sender_account_id: int
-    receiver_account_id: int
+    sender_account_id: int | None  # gpt fix
+    receiver_account_id: int | None  # gpt fix
     amount: float
     transaction_type: str
     status: str
+
+'''
+Removed lines:
+Lines 31-32:     sender_account_id: int
+    receiver_account_id: int
+'''
 
 
 class SavingsAccDetailsSchema(TypedDict):
