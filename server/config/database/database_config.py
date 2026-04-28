@@ -1,9 +1,10 @@
+from pathlib import Path
+from server.core.error_codes_and_exceptions import ERROR_CODES
 import datetime
-from pathlib import Path  # gpt fix
 
-DATABASE = str(Path(__file__).resolve().parents[2] / "database" / "BANK DATABASE.db")  # gpt fix
+DATABASE = str(Path(__file__).resolve().parents[2] / "database" / "BANK DATABASE.db")
 DATABASE_TABLES = ("users", "accounts", "system_logs", "transaction_logs",
-                   "savings_acc_details", "spending_acc_details")
+                   "savings_acc_details", "spending_acc_details", "sessions")
 ACCOUNT_TYPES = ("SAVINGS", "SPENDING")
 ACCOUNT_STATUS = ("ACTIVE", "DORMANT", "FROZEN", "CLOSED")
 TRANSACTION_TYPES = (
@@ -20,13 +21,7 @@ TRANSACTION_STATUS = (
     "FAILED",
     "REVERSED"
 )
-ERROR_CODES = {
-    "INSUFFICIENT_FUNDS": "E001",
-    "ACCOUNT_FROZEN": "E002",
-    "INVALID_ACCOUNT": "E003",
-    "TRANSFER_FAILED": "E004",
-    "UNAUTHORIZED": "E005"
-}
+SESSIONS_STATUS = ("active", "ended")
 DATABASE_TABLES_FIELDS = {
     "users": ("id", "first_name", "sur_name", "username",  "password", "time_of_creation"),
     "accounts": ("account_id", "account_number", "user_id", "pin",
@@ -35,7 +30,8 @@ DATABASE_TABLES_FIELDS = {
     "transaction_logs": ("transaction_id", "sender_account_id",
                          "receiver_account_id", "amount", "transaction_type", "status", "timestamp"),
     "savings_acc_details": ("account_id", "interest_rate", "interest_due_date"),
-    "spending_acc_details": ("account_id", "daily_limit")
+    "spending_acc_details": ("account_id", "daily_limit"),
+    "sessions": ("session_id", "session_token", "user_id", "created_at", "ends_at", "status")
 }
 
 REQUIRED_DATABASE_TABLES_FIELDS = {
@@ -49,9 +45,11 @@ REQUIRED_DATABASE_TABLES_FIELDS = {
         "amount": float,
         "transaction_type": str,
         "status": str,
-    },  # gpt fix end
+    },
     "savings_acc_details": {"account_id": int, "interest_rate": float, "interest_due_date": datetime.date},
-    "spending_acc_details": {"account_id": int, "daily_limit": float}
+    "spending_acc_details": {"account_id": int, "daily_limit": float},
+    "sessions": {"session_token": str, "user_id": int, "created_at": datetime.datetime,
+                 "ends_at": datetime.datetime, "status": str}
 }
 
 '''

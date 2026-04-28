@@ -1,5 +1,6 @@
 from cryptography.fernet import Fernet
 import bcrypt
+from server.core.results import Result
 
 """KEY_FILE = "Fernet Key.txt"
 try:
@@ -37,16 +38,15 @@ def decrypt_dict(data: dict):
 
 
 def hash_passkey(passkey: str):
-    return bcrypt.hashpw(passkey.encode(), bcrypt.gensalt()).decode()
+    hashed_passkey = bcrypt.hashpw(passkey.encode(), bcrypt.gensalt()).decode()
+    return Result(success=True, data=hashed_passkey)
 
 
 def validate_passkey(passkey_to_be_validated: str, stored_hash: str):
-    return bcrypt.checkpw(passkey_to_be_validated.encode(), stored_hash.encode())
-
-
-
-
-
-
-
+    buffer = bcrypt.checkpw(passkey_to_be_validated.encode(), stored_hash.encode())
+    if buffer:
+        return Result(success=True)
+    else:
+        error_message = f"Passkey '{passkey_to_be_validated}' is incorrect"
+        return Result(success=False, error_code="E009", error_message=error_message)
 

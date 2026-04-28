@@ -1,7 +1,4 @@
-"""Generated from database_config.REQUIRED_DATABASE_TABLES_FIELDS.
-It generates static Typed dict classes used for typechecking for the various schemas of the dicts required
-by the database module when handling input for different tables in the database
-"""
+"""Generated from database_config.REQUIRED_DATABASE_TABLES_FIELDS."""
 
 import datetime
 from typing import TypedDict
@@ -28,17 +25,11 @@ class SystemLogsSchema(TypedDict):
 
 
 class TransactionLogsSchema(TypedDict):
-    sender_account_id: int | None  # gpt fix
-    receiver_account_id: int | None  # gpt fix
+    sender_account_id: int | None
+    receiver_account_id: int | None
     amount: float
     transaction_type: str
     status: str
-
-'''
-Removed lines:
-Lines 31-32:     sender_account_id: int
-    receiver_account_id: int
-'''
 
 
 class SavingsAccDetailsSchema(TypedDict):
@@ -50,3 +41,11 @@ class SavingsAccDetailsSchema(TypedDict):
 class SpendingAccDetailsSchema(TypedDict):
     account_id: int
     daily_limit: float
+
+
+class SessionsSchema(TypedDict):
+    session_token: str
+    user_id: int
+    created_at: datetime
+    ends_at: datetime
+    status: str
